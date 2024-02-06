@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { getDb } = require('../config/db')
+const { getDb } = require('../config/db');
+const mongodb = require('mongodb')
 
 
 const auth = async(req, res, next) => {
@@ -11,8 +12,9 @@ const auth = async(req, res, next) => {
     const decodeToken = jwt.verify(token, process.env.secretKey);
 
 
-    await db.collection('users').findOne({ _id: decodeToken._id })
+    db.collection('users').findOne({ _id: new mongodb.ObjectId(decodeToken._id) })
         .then(user => {
+            // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7', user._id)
             req.user = user;
             next();
         })

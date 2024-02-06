@@ -10,14 +10,14 @@ const mongodb = require('mongodb')
 
 const createUser = (req, res) => {
 
-    const { username, email, password } = req.body;
+    const { username, email, password, isAdmin } = req.body;
 
     if (!username || !email || !password) {
         return res.status(400).json({ message: 'provide all the fields' })
     }
 
     bcrypt.hash(password, saltRounds, function(err, haspassword) {
-        const user = new User(username, email, haspassword);
+        const user = new User(username, email, haspassword, isAdmin);
         user.save()
             .then(result => {
                 console.log('created user');
@@ -38,6 +38,9 @@ const login = async(req, res) => {
 
     const { email, password } = req.body;
     const user = await db.collection('users').findOne({ email: email });
+    // if(user.isAdmin==true){
+
+    // }
 
 
     if (!user || !(await bcrypt.compare(password, user.password))) {

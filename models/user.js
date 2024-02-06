@@ -1,10 +1,11 @@
 const { getDb } = require('../config/db')
 
 class User {
-    constructor(username, email, password) {
+    constructor(username, email, password, isAdmin) {
         this.username = username;
         this.email = email;
-        this.password = password
+        this.password = password;
+        this.isAdmin = isAdmin
     }
 
     save() {
