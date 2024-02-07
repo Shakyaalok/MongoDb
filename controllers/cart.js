@@ -3,7 +3,7 @@ const mongodb = require('mongodb');
 
 
 
-
+// create the cart but has to implement increase or decrease because only increase functionality is there or we can create the separeate api for the update the cart
 const cartInsert = async(req, res) => {
     const db = getDb();
     let { prodId } = req.params;
@@ -80,5 +80,34 @@ const fetchCart = async(req, res) => {
 
 }
 
+const deleteItemsInCart = async(req, res) => {
+    const userId = req.user._id;
+    const { prodId } = req.params;
+    const db = getDb();
+    console.log('userId', userId, 'prodId', prodId)
+    try {
 
-module.exports = { cartInsert, fetchCart }
+        //first find the cart using userId and prodId
+        const cart = await db.collection('carts').findOne({ "items.userId": userId, "items.prodId": new mongodb.ObjectId(prodId) });
+        if (!cart) {
+            return res.status(400).json({ message: 'something went wrong' })
+        }
+
+        const { _id, ...rest } = cart;
+        //after finding the cartId delete the that cart
+        await db.collection('carts').deleteOne({ _id: _id });
+
+        res.status(200).json({ message: 'Prodct has been deleted from cart' });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'something went wrong', error })
+    }
+}
+
+
+// delete the items in cart
+
+
+module.exports = { cartInsert, fetchCart, deleteItemsInCart }
