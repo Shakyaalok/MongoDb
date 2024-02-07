@@ -20,7 +20,7 @@ const addProduct = async(req, res) => {
 
 
         const { title, price, description, imageUrl } = req.body;
-        const product = new Product(title, price, description, imageUrl);
+        const product = new Product(title, price, description, imageUrl, id);
         product.save()
             .then(result => {
                 console.log('created Product');

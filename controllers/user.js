@@ -54,5 +54,30 @@ const login = async(req, res) => {
 }
 
 
+//get all product
+const getallProducts = async(req, res) => {
 
-module.exports = { createUser, login };
+    try {
+        const db = getDb();
+        const allProducts = await db.collection('products').find().toArray();
+
+        if (!allProducts) {
+            return res.status(404).json({ message: 'no products found' });
+        }
+
+        // const {userId,...products} = allProducts
+        let products = allProducts.map(({ userId, ...rest }) => rest);
+        res.status(200).json({ products })
+
+    } catch (err) {
+
+        console.log(err)
+        res.status(500).json({ message: 'something went wrong', err });
+
+    }
+}
+
+
+
+
+module.exports = { createUser, login, getallProducts };
