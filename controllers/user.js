@@ -78,6 +78,36 @@ const getallProducts = async(req, res) => {
 }
 
 
+// placed order
+const placedOrder = async(req, res) => {
+    const userId = req.user._id;
+    const db = getDb();
+
+    try {
+        const products = await db.collection('carts').find({ "items.userId": userId }).toArray();
+        const idsAndQuantity = products.map((itm) => {
+            const obj = {
+                prodIds: itm.items.prodId,
+                quantity: itm.items.quantity,
+            }
+            return obj;
+        })
+
+        let price = 0;
+
+        await Promise.all(idsAndQuantity.map(async(itm, index) => {
+            let productsDetails = await db.collection('products').findOne({ _id: itm.prodIds });
+            price = price + productsDetails.price * itm.quantity;
+            return;
+        }))
+        res.status(200).json({ message: `Your order has been placed of total amount Rs ${price}` })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: 'something went wrong', error })
+    }
+}
 
 
-module.exports = { createUser, login, getallProducts };
+
+
+module.exports = { createUser, login, getallProducts, placedOrder };
