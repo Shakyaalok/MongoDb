@@ -1,6 +1,5 @@
-const { Product } = require('../models/product');
+const Product = require('../models/product');
 const mongodb = require('mongodb');
-const { getDb } = require('../config/db');
 const User = require('../models/user')
 
 
@@ -9,27 +8,17 @@ const User = require('../models/user')
 const addProduct = async(req, res) => {
 
     const id = req.user._id;
-    const db = getDb();
-
     try {
 
-        const user = await db.collection('users').findOne({ _id: id });
+        const user = await User.findOne({ _id: id });
         if (user.isAdmin !== true) {
             return res.status(401).json({ message: 'You are not Authorized' })
         }
 
 
         const { title, price, description, imageUrl } = req.body;
-        const product = new Product(title, price, description, imageUrl, id);
-        product.save()
-            .then(result => {
-                console.log('created Product');
-                console.log(product)
-                res.status(201).json(product)
-            })
-            .then(err => {
-                console.log(err)
-            })
+        const product = await Product.create({ title: title, price: price, description: description, imageUrl: imageUrl, adminId: id });
+        res.status(201).json({ product: product, meesage: 'Successfully created product' })
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Something went wrong', error })
@@ -46,15 +35,13 @@ const getoneProduct = async(req, res) => {
     const { prodId } = req.params
 
     try {
-        const db = getDb();
-
         //checking if the login user is admin or not
-        const user = await db.collection('users').findOne({ _id: id });
+        const user = await User.findOne({ _id: id });
         if (user.isAdmin !== true) {
             return res.status(401).json({ message: 'You are not authorized' });
         }
 
-        const product = await db.collection('products').findOne({ _id: new mongodb.ObjectId(prodId) });
+        const product = await Product.findOne({ _id: new mongodb.ObjectId(prodId) });
         if (!product) {
             return res.status(400).json({ message: 'no product found' });
         }
@@ -74,14 +61,14 @@ const getallProducts = async(req, res) => {
     const id = req.user._id;
 
     try {
-        const db = getDb();
-        const user = await db.collection('users').findOne({ _id: id });
+
+        const user = await User.findOne({ _id: id });
 
         //checking if the login user is admin or not
         if (user.isAdmin !== true) {
             return res.status(401).json({ message: 'You are not authorized' })
         }
-        const products = await db.collection('products').find().toArray();
+        const products = await Product.find();
 
         if (!products) {
             return res.status(404).json({ message: 'no products found' });
@@ -105,16 +92,15 @@ const removeOne = async(req, res) => {
     const { deleteId } = req.params
 
     try {
-        const db = getDb();
 
         //checking if the login user is admin or not
-        const user = await db.collection('users').findOne({ _id: id });
+        const user = await User.findOne({ _id: id });
         if (user.isAdmin !== true) {
             return res.status(401).json({ message: 'You are not authorized' });
         }
 
 
-        const product = await db.collection('products').deleteOne({ _id: new mongodb.ObjectId(deleteId) });
+        const product = await Product.deleteOne({ _id: new mongodb.ObjectId(deleteId) });
         if (!product) {
             return res.status(404).json({ message: 'no products found' });
         }
@@ -133,20 +119,27 @@ const removeOne = async(req, res) => {
 const updtOne = async(req, res) => {
 
     const id = req.user._id;
-    const { updateStuff } = req.params;
-    const { title } = req.body
+    const { prodId } = req.params;
+    console.log(prodId)
 
 
     try {
-        const db = getDb();
 
         //checking if the login user is admin or not
-        const user = await db.collection('users').findOne({ _id: id });
+        const user = await User.findOne({ _id: id });
         if (user.isAdmin !== true) {
             return res.status(401).json({ message: 'You are not authorized' });
+        };
+
+        const { title, price, description, imageUrl } = req.body;
+        const updateDetails = {
+            title: title,
+            price: price,
+            description: description,
+            imageUrl: imageUrl
         }
 
-        const product = await db.collection('products').updateOne({ title: updateStuff }, { $set: { title: title } })
+        const product = await Product.updateOne({ _id: new mongodb.ObjectId(prodId) }, { $set: updateDetails })
         if (!product) {
             return res.status(404).json({ message: 'No product find to update' })
         }

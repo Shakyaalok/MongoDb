@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 dotenv.config();
-const { mongoConnect } = require('./config/db');
+const mongoose = require('mongoose');
 
 
 
@@ -13,7 +13,8 @@ const { mongoConnect } = require('./config/db');
 //routes
 const product = require('./routes/products');
 const user = require('./routes/user');
-const cart = require('./routes/cart')
+const cart = require('./routes/cart');
+
 
 
 
@@ -35,10 +36,12 @@ app.use('/cart', cart)
 
 
 
-
-
-mongoConnect(() => {
-    app.listen(8000, () => {
-        console.log('server is listening')
+mongoose.connect('mongodb+srv://project7678:Strong123@learnmongo.fkoflqw.mongodb.net/shop')
+    .then(result => {
+        app.listen(8000, () => {
+            console.log(`listening at the port of ${8000}`)
+        })
     })
-})
+    .catch(err => {
+        console.log(err)
+    })
